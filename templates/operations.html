@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations Table</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .custom-table {
+            --bs-table-bg: unset;
+        }
+
+        .income-row {
+            background-color: #f4fff4;
+            /* font-weight: bold; */
+        }
+
+        .expense-row {
+            background-color: #f9e7e7;
+        }
+
+        .custom-table tbody tr{
+            border-bottom: 2px solid lightgray;
+        }
+
+        .custom-table tbody tr:hover {
+            background-color: whitesmoke; /* Background color row on hover*/
+        }
+
+        thead th {
+            height: 50px; 
+        }
+        
+        tfoot {
+            font-weight: bold;
+        }
+        
+        body {
+            padding-top: 60px;
+            padding-bottom : 60px;
+        }
+
+        .dropdown-toggle {
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="bg-dark text-white py-3 fixed-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">App Rent Keeper</h1>
+            <nav>
+                <a href="/pages/operation/all" class="btn btn-outline-light me-3">View My Data</a>
+                <a href="/pages/operation/form" class="btn btn-outline-light me-3">Add New Data</a>
+                {% if username %}
+                    <a class="btn-outline-light me-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="-20,15">{{ username }}</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" id="logout-button">Logout</a></li>
+                        <!-- <li><a class="dropdown-item" href="#">Another action</a></li> -->
+                    </ul>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Operations</h1>
+            <select id="yearSelect" class="form-select w-auto">
+                {% for year in range(current_year, current_year-10, -1) %}
+                    <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                    <!-- <option value="{{ year }}">{{ year }}</option> -->
+                {% endfor %}
+            </select>
+        </div>
+        <div class="table-responsive">
+            <table class="table custom-table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>DATE IN - DATE OUT</th>
+                        <th>DATE OF PAYMENT</th>
+                        <th>CLIENT PAID, GROSS</th>
+                        <!-- <th>COMISSION</th> -->
+                        <th class="col-2">REVENUE AFTER COMISSION</th>
+                        <th class="col-2">EXPENSES</th>
+                        <th>CLIENT FULL NAME</th>
+                        <th class="col-2">EXTRA INFO</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="operationsTableBody">
+                    <!-- Rows will be inserted here by JavaScript -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total</td>
+                        <td id="totalRevenueAfterCommission"></td>
+                        <td id="totalExpenses"></td>
+                        <!-- <td colspan="2"></td> -->
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button id="download-btn" class="btn btn-outline-success btn-lg">Download Excel</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this operation?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- jQuery -->
+     <!-- This is required for Modal correct work. e.g. Close button -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearSelect = document.getElementById('yearSelect');
+
+            yearSelect.addEventListener('change', function() {
+                fetchOperationsForYear(yearSelect.value);
+            });
+
+            // Load the current year operations on page load
+            fetchOperationsForYear(yearSelect.value);
+        });
+
+        async function fetchOperationsForYear(year) {
+            try {
+                const response = await fetch(`/operations/${year}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+            
+                const data = await response.json();
+                const tableBody = document.getElementById('operationsTableBody');
+                tableBody.innerHTML = '';
+
+                let totalRevenueAfterCommission = 0;
+                let totalExpenses = 0;
+
+                data.forEach(operation => {
+                    const row = document.createElement('tr');
+                    
+                    row.setAttribute('data-id', operation.id); // Add data-id attribute
+
+                    row.className = operation.type_operation === 'Income' ? 'income-row' : 'expense-row';
+
+                    const dateInOut = operation.type_operation === 'Income' ? `In: ${formatDate(operation.date_in)}<br>Out: ${formatDate(operation.date_out)}` : '';
+
+                    const revenueAfterCommission = operation.revenue_after_comission || 0;
+                    const totalExpense = operation.total_expense || 0;
+
+                    totalRevenueAfterCommission += Number(revenueAfterCommission);
+                    totalExpenses += Number(totalExpense);
+
+                    row.innerHTML = `
+                        <td>${dateInOut}</td>
+                        <td>${formatDate(operation.date_of_payment)}</td>
+                        <td>${formatCurrency(operation.gross_income) || ''}</td>
+
+                        <td>${formatCurrency(operation.revenue_after_comission) || ''}</td>
+                        <td>${formatCurrency(operation.total_expense) || ''}</td>
+                        <td>${operation.fullname || ''}</td>
+                        <td>${operation.extra_info || ''}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-light btn-sm" onclick="showDeleteModal(${operation.id})">Delete</button>
+                                <button class="btn btn-light btn-sm" onclick="editRowData(${operation.id})">Edit</button>
+                            </div>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+
+                // Update the totals in the table footer
+                document.getElementById('totalRevenueAfterCommission').textContent = formatCurrency(totalRevenueAfterCommission);
+                document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+            } catch (error) {
+                console.error('Error fetching operations:', error);
+            }
+        }
+
+        // Function to format date to dd.mm.yyyy
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        // Function to format currency values
+        function formatCurrency(amount, currencySymbol = '₽') {
+            if (amount === null || amount === undefined) return '';
+            // Convert number to string with thousands separators
+            return `${Number(amount).toLocaleString()} ${currencySymbol}`;
+        }
+
+        // DELETION BLOCK
+        let operationIdToDelete = null;
+
+        // Function to show the delete confirmation modal
+        function showDeleteModal(operationId) {
+            operationIdToDelete = operationId;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        // Event listener for delete buttons
+        document.getElementById('confirmDelete').addEventListener('click', async () => {
+            if (operationIdToDelete !== null) {
+                console.log(`Operation ID for deletion: ${operationIdToDelete}`);
+                await deleteOperation(operationIdToDelete);
+                operationIdToDelete = null;
+                const deleteModalElement = document.getElementById('deleteModal');
+                const deleteModal = bootstrap.Modal.getInstance(deleteModalElement);
+                deleteModal.hide();
+            }
+        });
+
+        // Send DELETE request to server
+        async function deleteOperation(operationId) {
+            try {
+                const response = await fetch(`/operations/delete/${operationId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    console.log(`Operation with ID=${operationIdToDelete} deleted successfully!`);
+                    document.querySelector(`tr[data-id='${operationId}']`).remove();
+                    alert("Operation deleted successfully!");
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.detail}`);
+                }
+            } catch (error) {
+                alert("An error occurred while deleting the operation.");
+            }
+        }
+
+        async function editRowData(operationId) {
+            try {
+                window.location.href = `/pages/operation/form?operation_id=${operationId}`;
+            } catch (error) {
+                console.error('Error redirecting to the edit form page:', error);
+            }
+        }
+
+        // Download Excel
+        document.getElementById('download-btn').addEventListener('click', async () => {
+            const yearSelect = document.getElementById('yearSelect');
+            const year = yearSelect.value;
+            try {
+                const response = await fetch(`/operations/${year}/download`);;
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `operations_report_${year}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+
+        // Logout button
+        document.getElementById('logout-button').addEventListener('click', async function(event) {
+            event.preventDefault();
+
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include' // Important for work with cookie
+                });
+
+                if (response.ok) {
+                    console.log('Logout successful');
+                    window.location.href = '/pages/login';
+                } else {
+                    const errorData = await response.json();
+                    console.error('Logout failed:', errorData);
+                    alert('Logout failed: ' + errorData.detail);
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+                alert('Logout failed: ' + error.message);
+            }
+        });
+
+    </script>
+</body>
+</html>

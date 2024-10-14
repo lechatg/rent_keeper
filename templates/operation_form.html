@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Form</title>
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .form-container {
+            max-width: 40vw;
+        }
+
+        .feedback {
+            display: none;
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
+        .feedback.success {
+            color: green;
+        }
+        .feedback.error {
+            color: red;
+        }
+
+        /* .container {
+        margin-bottom: 15vh;
+        } */
+
+        .btn-primary {
+        /* transform: scale(0.95); */
+        transition: transform 0.1s;
+        }
+
+        .required {
+            color: red;
+        }
+
+        input:required {
+            border-color: red;
+        }
+
+        input:required:valid {
+            border-color: green;
+        }
+
+        .valid-field {
+            border-color: green !important;
+        }
+
+        .invalid-field {
+            border-color: red !important;
+        }
+
+        /* Alert blink */
+        @keyframes blink {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .alert-blink {
+            animation: blink 0.3s;
+        }
+
+        body {
+            padding-top: 60px;
+            padding-bottom : 60px;
+        }
+
+        .dropdown-toggle {
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="bg-dark text-white py-3 fixed-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">App Rent Keeper</h1>
+            <nav>
+                <a href="/pages/operation/all" class="btn btn-outline-light me-3">View My Data</a>
+                <a href="/pages/operation/form" class="btn btn-outline-light me-3">Add New Data</a>
+                {% if username %}
+                    <a class="btn-outline-light me-2 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="-20,15">{{ username }}</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" id="logout-button">Logout</a></li>
+                        <!-- <li><a class="dropdown-item" href="#">Another action</a></li> -->
+                    </ul>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    <div class="container mt-5">
+        <div class="form-container mx-auto">
+            <form id="operation-form">
+                <div class="mb-3">
+                    <label for="type_operation" class="form-label mb-2">Type Operation:<span class="required">*</span></label>
+                    <select class="form-select" id="type_operation" name="type_operation" required>
+                        <option value="">Select Type</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="date_of_payment" class="form-label mb-2">Date of Payment:<span class="required">*</span></label>
+                    <input type="date" class="form-control" id="date_of_payment" name="date_of_payment" required>
+                </div>
+                <div class="mb-3">
+                    <label for="extra_info" class="form-label mb-2">Extra Info:</label>
+                    <input type="text" class="form-control" id="extra_info" name="extra_info">
+                </div>
+                <div id="expense-fields" style="display:none;">
+                    <div class="mb-3">
+                        <label for="total_expense" class="form-label mb-2">Total Expense:<span class="required">*</span></label>
+                        <input type="number" class="form-control" id="total_expense" name="total_expense" min="0">
+                    </div>
+                </div>
+                <div id="income-fields" style="display:none;">
+                    <div class="mb-3">
+                        <label for="gross_income" class="form-label mb-2">Gross Income:<span class="required">*</span></label>
+                        <input type="number" class="form-control" id="gross_income" name="gross_income" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="comission" class="form-label mb-2">Comission:<span class="required">*</span></label>
+                        <input type="number" class="form-control" id="comission" name="comission" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_after_comission" class="form-label mb-2">Revenue After Comission:<span class="required">*</span></label>
+                        <input type="number" class="form-control" id="revenue_after_comission" name="revenue_after_comission" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="date_in" class="form-label mb-2">Date In:<span class="required">*</span></label>
+                        <input type="date" class="form-control" id="date_in" name="date_in">
+                    </div>
+                    <div class="mb-3">
+                        <label for="date_out" class="form-label mb-2">Date Out:<span class="required">*</span></label>
+                        <input type="date" class="form-control" id="date_out" name="date_out">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fullname" class="form-label mb-2">Client Full Name:</label>
+                        <input type="text" class="form-control" id="fullname" name="fullname" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label mb-2">Phone:</label>
+                        <input type="text" class="form-control" id="phone" name="phone" maxlength="20">
+                    </div>
+                    <div class="mb-3">
+                        <label for="source" class="form-label mb-2">Source:<span class="required">*</span></label>
+                        <select class="form-select" id="source" name="source">
+                            <option value="">Select Source</option>
+                            <option value="Direct">Direct</option>
+                            <option value="Aggregator">Aggregator</option>
+                            <option value="Website">Website</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="submit-button" type="submit" class="btn btn-primary">Submit</button>
+                <div id="feedback-success" class="alert alert-success mt-3 d-none">✅ Data successfully added</div>
+                <div id="feedback-error" class="alert alert-danger mt-3 d-none">❌ Failed to add data</div>
+
+            </form>
+        </div>
+    </div>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        // Function to update the display of fields
+        function updateDisplayFields(typeOperation) {
+            document.getElementById('expense-fields').style.display = typeOperation === 'Expense' ? 'block' : 'none';
+            document.getElementById('income-fields').style.display = typeOperation === 'Income' ? 'block' : 'none';
+            updateRequiredFields(typeOperation);
+        }
+
+        // Show different fields depending on type_operation
+        document.getElementById('type_operation').addEventListener('change', function() {
+            const typeOperation = this.value;
+            updateDisplayFields(typeOperation);
+        });
+
+        // Autofill revenue_after_comission based on gross_income and comission
+        document.getElementById('gross_income').addEventListener('input', calculateRevenue);
+        document.getElementById('comission').addEventListener('input', calculateRevenue);
+
+        function calculateRevenue() {
+            const grossIncome = parseFloat(document.getElementById('gross_income').value) || 0;
+            const comission = parseFloat(document.getElementById('comission').value) || 0;
+            const revenueAfterComission = grossIncome - comission;
+            document.getElementById('revenue_after_comission').value = revenueAfterComission;
+        }
+
+        // Update what fields are required based on type_operation
+        function updateRequiredFields(typeOperation) {
+            const expenseFields = document.querySelectorAll('#expense-fields input');
+            const incomeFields = document.querySelectorAll('#income-fields input, #income-fields select');
+
+            if (typeOperation === 'Expense') {
+                expenseFields.forEach(field => {
+                    field.addEventListener('input', updateValidationStyles);
+                    field.addEventListener('change', updateValidationStyles);
+                });
+                incomeFields.forEach(field => {
+                    field.removeEventListener('input', updateValidationStyles);
+                    field.removeEventListener('change', updateValidationStyles);
+                });
+            } else if (typeOperation === 'Income') {
+                expenseFields.forEach(field => {
+                    field.removeEventListener('input', updateValidationStyles);
+                    field.removeEventListener('change', updateValidationStyles);
+                });
+                incomeFields.forEach(field => {
+                    field.addEventListener('input', updateValidationStyles);
+                    field.addEventListener('change', updateValidationStyles);
+                });
+            } else {
+                expenseFields.forEach(field => {
+                    field.removeEventListener('input', updateValidationStyles);
+                    field.removeEventListener('change', updateValidationStyles);
+                });
+                incomeFields.forEach(field => {
+                    field.removeEventListener('input', updateValidationStyles);
+                    field.removeEventListener('change', updateValidationStyles);
+                });
+            }
+
+            updateValidationStyles();
+        }
+        
+        // Update styles for required fields
+        function updateValidationStyles() {
+            const fields = document.querySelectorAll('input, select');
+            fields.forEach(field => {
+                const label = document.querySelector(`label[for="${field.id}"]`);
+                const isRequired = label && label.querySelector('.required');
+                
+                if (isRequired) {
+                    if (field.value.trim() === '') {
+                        field.classList.add('invalid-field');
+                        field.classList.remove('valid-field');
+                    } else {
+                        field.classList.remove('invalid-field');
+                        field.classList.add('valid-field');
+                    }
+                } else {
+                    field.classList.remove('invalid-field');
+                    field.classList.remove('valid-field');
+                }
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // DYNAMIC STYLES LOGIC
+            // Update what fields are required based on selected type
+            const typeOperation = document.getElementById('type_operation').value;
+            updateRequiredFields(typeOperation);
+            updateValidationStyles();
+
+            // Add event listeners to all required fields to change styles upon input or change
+            const fields = document.querySelectorAll('input, select');
+            fields.forEach(field => {
+                field.addEventListener('input', updateValidationStyles);
+                field.addEventListener('change', updateValidationStyles);
+            });
+
+            // AUTOFILL FROM WITH DATA IF USER CAME TO EDIT
+            const urlParams = new URLSearchParams(window.location.search);
+            const operationId = urlParams.get('operation_id');
+
+            if (operationId) {
+                // Update the button text based on the presence of operation_id
+                const submitButton = document.getElementById('submit-button');
+                submitButton.textContent = 'Update Data';
+                // Fetch data by operationId and then populate form with it
+                fetchOperationData(operationId);
+            }
+
+        });
+
+        // Collect data from fields into JSON and make PUT/POST request to update/add data to db
+        document.getElementById('operation-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            const typeOperation = data.type_operation.toLowerCase();
+            // const url = typeOperation === 'expense' ? '/operations/expense' : '/operations/income';
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const operationId = urlParams.get('operation_id');
+            if (operationId) {
+                console.log(`Update Operation with ID: ${operationId}`);
+            }
+            const url = operationId ? `/operations/${typeOperation}/${operationId}` : `/operations/${typeOperation}`;
+
+            
+            try {
+                const response = await fetch(url, {
+                    method: operationId ? 'PUT' : 'POST',
+                    // method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                console.log(result);
+
+                document.getElementById('feedback-success').classList.remove('alert-blink');
+                document.getElementById('feedback-error').classList.remove('alert-blink');
+
+
+                if (response.ok) {
+                    document.getElementById('feedback-success').classList.add('d-none');
+                    document.getElementById('feedback-success').classList.remove('d-none');
+                    document.getElementById('feedback-error').classList.add('d-none');
+
+                    document.getElementById('feedback-success').classList.remove('alert-blink');
+                    void document.getElementById('feedback-success').offsetWidth; // Trigger reflow
+                    document.getElementById('feedback-success').classList.add('alert-blink');
+                    
+                } else {
+                    const errorDetail = result.detail || 'Unknown error.';
+                    document.getElementById('feedback-error').textContent = `❌ Failed to add data. Error: ${errorDetail}`;
+                    document.getElementById('feedback-success').classList.add('d-none');
+                    document.getElementById('feedback-error').classList.remove('d-none');
+                    
+                    document.getElementById('feedback-error').classList.remove('alert-blink');
+                    void document.getElementById('feedback-error').offsetWidth; // Trigger reflow
+                    document.getElementById('feedback-error').classList.add('alert-blink');
+                    
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('feedback-error').textContent = `❌ Request failed: ${error.message}`;
+                document.getElementById('feedback-success').style.display = 'none';
+                document.getElementById('feedback-error').style.display = 'block';
+            }
+        });
+
+        // Fetch data for operation if user came with operationId
+        async function fetchOperationData(operationId) {
+            try {
+                const response = await fetch(`/operations/operation/${operationId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    populateForm(data);
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            } catch (error) {
+                console.error('Error fetching operation data:', error);
+            }
+        }
+
+        // Populate form fields with data from server
+        function populateForm(data) {
+            const form = document.getElementById('operation-form');
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const field = form.querySelector(`[name="${key}"]`);
+                    if (field) {
+                        field.value = data[key];
+                    }
+                }
+            }
+
+            // Check if type_operation field is populated and update the display of fields accordingly
+            if (data.type_operation) {
+                updateDisplayFields(data.type_operation);
+            }
+        }
+
+        // Logout button
+        document.getElementById('logout-button').addEventListener('click', async function(event) {
+            event.preventDefault();
+
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include' // Important for work with cookie
+                });
+
+                if (response.ok) {
+                    console.log('Logout successful');
+                    window.location.href = '/pages/login';
+                } else {
+                    const errorData = await response.json();
+                    console.error('Logout failed:', errorData);
+                    alert('Logout failed: ' + errorData.detail);
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+                alert('Logout failed: ' + error.message);
+            }
+        });
+
+    </script>
+</body>
+</html>

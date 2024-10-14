@@ -1,0 +1,6 @@
+/rentkeeperVenv
+/.pytest_cache
+/logs
+__pycache__/
+/.env
+/.env-non-dev

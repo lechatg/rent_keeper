@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    container_name: db_app
+    command: -p 1221
+    expose:
+      - 1221
+    env_file:
+      - .env-non-dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+    env_file:
+      - .env-non-dev
+    container_name: fastapi_app_rent_keeper
+    command: ["/fastapi_app_rent_keeper/alembic_app.sh"]
+    ports:
+      - 6789:8000
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

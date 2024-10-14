@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+email-validator
+sqlalchemy
+asyncpg
+python-dotenv
+jinja2
+pandas
+openpyxl
+alembic
+fastapi-users[sqlalchemy]
+pytest 
+pytest-asyncio
+httpx
+gunicorn

@@ -10,15 +10,15 @@ from src.auth.utils import get_user_db
 
 from sqlalchemy.exc import IntegrityError
 
+from src.config import SECRET_AUTH_KEY
+
 from logging import getLogger
 logger = getLogger(__name__)
 
-SECRET = "SECRET"
-
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
-    reset_password_token_secret = SECRET
-    verification_token_secret = SECRET
+    reset_password_token_secret = SECRET_AUTH_KEY
+    verification_token_secret = SECRET_AUTH_KEY
 
     user_db_model = User
 

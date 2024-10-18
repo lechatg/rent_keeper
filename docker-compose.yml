@@ -23,7 +23,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./logs:/app/logs
+      - ./logs:/fastapi_app_rent_keeper/logs
 
 volumes:
   postgres_data:

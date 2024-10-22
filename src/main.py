@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from src.operations.router import router as operations_router
 from src.pages.router import pages_router as pages_router
 from src.pages.router import home_router as home_router
@@ -14,6 +15,7 @@ logger.info('Launch App')
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(operations_router)
 app.include_router(pages_router)

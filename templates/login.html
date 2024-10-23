@@ -34,11 +34,29 @@
         height: 100vh !important;
         }
         }
-        @media (min-width: 769px) {
+        @media (min-width: 768px) {
         .custom-color-box {
         border-top-right-radius: .3rem;
         border-bottom-right-radius: .3rem;
         }
+        }
+        @media (max-width: 768px) {
+            .gradient-form {
+                /* Increase gap between header and main content on mobile */
+                padding-top: 5vh;
+            }
+
+            /* In case of need to change order of sections on mobile (vertically) */
+            .row.g-0 {
+                display: flex;
+                flex-direction: column;
+            }
+            .row.g-0 .custom-color-box {
+                order: -1;
+            }
+            #login_form {
+                padding-top: 3vh;
+            }
         }
 
     </style>

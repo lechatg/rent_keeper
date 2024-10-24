@@ -2,3 +2,5 @@
 /.pytest_cache
 /logs
 __pycache__/
+/readme_demo
+README.md
